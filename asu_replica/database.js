@@ -78,6 +78,21 @@ db.serialize(() => {
         PRIMARY KEY (user_id, event_id)
     )`);
 
+    // Minted Badges table (records off-chain index of on-chain NFTs)
+    db.run(`CREATE TABLE IF NOT EXISTS minted_badges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token_id INTEGER,
+        student_wallet TEXT,
+        event_id INTEGER,
+        event_name TEXT,
+        event_date TEXT,
+        achievement_type TEXT,
+        metadata_uri TEXT,
+        tx_hash TEXT,
+        network TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Seed Groups
     db.get("SELECT count(*) as count FROM groups", (err, row) => {
         if (row.count === 0) {
@@ -145,6 +160,19 @@ db.serialize(() => {
                 ['student', passwordHash, 'student@asu.edu'],
                 (err) => {
                     if (!err) console.log("Default user 'student' created.");
+                }
+            );
+        }
+    });
+
+    // Create a default admin for local testing
+    db.get("SELECT count(*) as count FROM users WHERE role = 'admin'", (err, row) => {
+        if (row.count === 0) {
+            const passwordHash = bcrypt.hashSync('adminpass123', 10);
+            db.run(`INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)`,
+                ['admin', passwordHash, 'admin@asu.edu', 'admin'],
+                (err) => {
+                    if (!err) console.log("Default admin 'admin' created (password: adminpass123).");
                 }
             );
         }

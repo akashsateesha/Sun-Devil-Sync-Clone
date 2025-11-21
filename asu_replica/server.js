@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -6,7 +7,8 @@ const path = require('path');
 const db = require('./database');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const SESSION_SECRET = process.env.SESSION_SECRET || 'sundevil_secret_key';
 
 // Middleware
 app.use(cors());
@@ -16,7 +18,7 @@ app.use(express.static(path.join(__dirname, '.'))); // Serve static files from r
 
 // Session Setup
 app.use(session({
-    secret: 'sundevil_secret_key',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
@@ -25,9 +27,11 @@ app.use(session({
 // Routes
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
+const badgeRoutes = require('./routes/badges');
 
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
+app.use('/api', badgeRoutes);
 
 // Start Server
 app.listen(PORT, () => {

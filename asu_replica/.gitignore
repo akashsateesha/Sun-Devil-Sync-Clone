@@ -3,3 +3,7 @@ node_modules/
 *.db
 cookies.txt
 *.log
+blockchain/node_modules
+blockchain/cache
+blockchain/artifacts
+blockchain/.env
