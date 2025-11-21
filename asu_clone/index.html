@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sun Devil Central - ASU</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🔱</div>
+                <span>Sun Devil Central</span>
+            </div>
+            <nav class="nav">
+                <a href="#groups" class="nav-link active">
+                    Groups
+                </a>
+                <a href="#events" class="nav-link">
+                    Events <span class="nav-badge">2145</span>
+                </a>
+                <a href="#my-account" class="nav-link">
+                    My Account
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section with Announcements -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Welcome to Sun Devil Central</h1>
+                <p>Connect with student organizations, discover events, and get involved in the ASU community.</p>
+            </div>
+        </section>
+
+        <!-- Announcements -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">📢</span>
+                    Announcements
+                </h2>
+            </div>
+            <div class="grid grid-2" id="announcements-grid">
+                <!-- Announcements will be loaded here -->
+            </div>
+        </section>
+
+        <!-- My Groups -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">👥</span>
+                    My Groups
+                </h2>
+                <a href="#" class="view-all-link">
+                    View All →
+                </a>
+            </div>
+            <div class="grid grid-3" id="my-groups-grid">
+                <!-- My groups will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Suggested Groups -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">✨</span>
+                    Suggested Groups
+                </h2>
+            </div>
+            <div class="grid grid-3" id="suggested-groups-grid">
+                <!-- Suggested groups will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Upcoming Events -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">📅</span>
+                    Upcoming Events
+                </h2>
+                <a href="#events" class="view-all-link">
+                    View All →
+                </a>
+            </div>
+            <div class="grid grid-2" id="events-grid">
+                <!-- Events will be loaded here -->
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn" id="prev-events">← Previous</button>
+                <span class="pagination-info" id="events-pagination-info">Page 1</span>
+                <button class="pagination-btn" id="next-events">Next →</button>
+            </div>
+        </section>
+
+        <!-- More Groups -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">🔍</span>
+                    Explore More Groups
+                </h2>
+            </div>
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-bar" 
+                    id="groups-search" 
+                    placeholder="Search for student organizations..."
+                >
+            </div>
+            <div class="grid grid-4" id="more-groups-grid">
+                <!-- More groups will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Funding Information -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">💰</span>
+                    Funding Opportunities
+                </h2>
+            </div>
+            <div class="grid grid-2" id="funding-grid">
+                <!-- Funding info will be loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-text">
+                © 2025 Arizona State University. Sun Devil Central - Connecting the ASU Community.
+            </p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
