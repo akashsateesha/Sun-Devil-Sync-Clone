@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title SunDevilBadge
@@ -12,10 +12,8 @@ import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
  *         Admins (MINTER_ROLE) can issue badges to students for events/achievements.
  */
 contract SunDevilBadge is ERC721URIStorage, AccessControl {
-    using Counters for Counters.Counter;
-
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    Counters.Counter private _tokenIds;
+    uint256 private _tokenIds;
 
     struct Badge {
         uint256 eventId;
@@ -62,8 +60,10 @@ contract SunDevilBadge is ERC721URIStorage, AccessControl {
         require(student != address(0), "Invalid student address");
         require(bytes(metadataURI).length > 0, "Metadata URI required");
 
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        unchecked {
+            _tokenIds += 1;
+        }
+        uint256 newTokenId = _tokenIds;
 
         _safeMint(student, newTokenId);
         _setTokenURI(newTokenId, metadataURI);
@@ -98,12 +98,12 @@ contract SunDevilBadge is ERC721URIStorage, AccessControl {
      * @notice Returns badge info for verification portals.
      */
     function getBadge(uint256 tokenId) external view returns (Badge memory badge) {
-        require(_exists(tokenId), "Badge does not exist");
+        require(_ownerOf(tokenId) != address(0), "Badge does not exist");
         return _badgeDetails[tokenId];
     }
 
     function totalMinted() external view returns (uint256) {
-        return _tokenIds.current();
+        return _tokenIds;
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721URIStorage, AccessControl) returns (bool) {

@@ -28,10 +28,12 @@ app.use(session({
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 const badgeRoutes = require('./routes/badges');
+const coinRoutes = require('./routes/coin');
 
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api', badgeRoutes);
+app.use('/api', coinRoutes);
 
 // Start Server
 app.listen(PORT, () => {

@@ -2,7 +2,7 @@ const { ethers } = require('ethers');
 const badgeAbi = require('./abi/SunDevilBadge.json');
 
 const rpcUrl = process.env.AMOY_RPC_URL || process.env.POLYGON_RPC_URL;
-const privateKey = process.env.PRIVATE_KEY || process.env.ISSUER_PRIVATE_KEY;
+const rawPrivateKey = process.env.PRIVATE_KEY || process.env.ISSUER_PRIVATE_KEY;
 const contractAddress = process.env.BADGE_CONTRACT_ADDRESS;
 const mockEnabled = process.env.MOCK_CHAIN === 'true' || !rpcUrl || !contractAddress;
 
@@ -19,7 +19,7 @@ function usesMock() {
 }
 
 function isConfigured() {
-    return Boolean(rpcUrl && contractAddress && privateKey);
+    return Boolean(rpcUrl && contractAddress && rawPrivateKey);
 }
 
 function getProvider() {
@@ -31,10 +31,11 @@ function getProvider() {
 
 function getWallet() {
     if (!wallet) {
-        if (!privateKey) {
-            throw new Error('Private key not configured for badge issuer');
+        const normalizedKey = normalizePrivateKey(rawPrivateKey);
+        if (!normalizedKey) {
+            throw new Error('Private key not configured or invalid. Expect 0x-prefixed 64 hex characters in PRIVATE_KEY or ISSUER_PRIVATE_KEY.');
         }
-        wallet = new ethers.Wallet(privateKey, getProvider());
+        wallet = new ethers.Wallet(normalizedKey, getProvider());
     }
     return wallet;
 }
@@ -107,6 +108,18 @@ function normalizeBadge(tokenId, rawBadge, tokenURI, network) {
         tokenURI,
         network
     };
+}
+
+function normalizePrivateKey(value) {
+    if (!value) return null;
+    let key = value.trim().replace(/^['"]|['"]$/g, ''); // strip quotes
+    if (!key.startsWith('0x') && key.length === 64) {
+        key = `0x${key}`;
+    }
+    if (!/^0x[0-9a-fA-F]{64}$/.test(key)) {
+        return null;
+    }
+    return key;
 }
 
 async function mockIssueBadge(params) {

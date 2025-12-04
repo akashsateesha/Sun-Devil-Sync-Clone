@@ -54,14 +54,38 @@ cd /Users/roystonf/Sun-Devil-Sync-Clone/asu_replica/blockchain
 npm install
 npx hardhat compile
 npx hardhat node         # start a local node
-npx hardhat run scripts/deploy.js --network localhost
+  npx hardhat run scripts/deploy.js --network localhost
 ```
+- Hardhat works best on Node 18.17+; if you see cache permission errors, set `HOME`/`XDG_CACHE_HOME` to the project folder when running commands.
+- For Polygon Amoy deploys, set `AMOY_RPC_URL` and `PRIVATE_KEY` (with `0x` prefix) in `blockchain/.env`.
+
+**SunDevilCoin (SDC)**
+
+- ERC-20 contract lives in `blockchain/contracts/SunDevilCoin.sol`.
+- Deploy helper: `npx hardhat run scripts/deploy-coin.js --network polygonAmoy` (or `--network localhost`). Configure optionally via `COIN_INITIAL_SUPPLY` (tokens, not wei) and `COIN_INITIAL_OWNER` in `.env`.
+- Backend expects `COIN_CONTRACT_ADDRESS` alongside `AMOY_RPC_URL` and `PRIVATE_KEY`. It respects `MOCK_CHAIN=true` the same way badges do.
+- New API routes (mounted at `/api`):
+  - `GET /api/coin/status` — config + mock flag
+  - `GET /api/coin/balance/:address` — wallet balance (18 decimals)
+  - `GET /api/coin/total-supply` — total minted supply
+  - `POST /api/coin/mint` — admin-only; body `{ "recipient": "0x...", "amount": "50" }` (amount in whole tokens, converted to 18 decimals)
+  - `POST /api/coin/transfer` — admin-only; moves tokens from issuer wallet to a recipient
+  - `GET /api/coin/transactions` — admin-only off-chain log of mint/transfer calls
+- Quick mint test (mock is fine):
+
+  ```bash
+  curl -X POST http://localhost:3000/api/coin/mint \
+    -H "Content-Type: application/json" \
+    --cookie-jar cookie.txt \
+    -d '{"recipient":"0x0000000000000000000000000000000000000001","amount":"50"}'
+  ```
 
 **Blockchain badge integration (Polygon Amoy)**
 
 - Copy `.env.example` to `.env` and fill in:
   - `MOCK_CHAIN=true` to use the in-memory mock (no blockchain needed)
   - For real testnet calls: `AMOY_RPC_URL`, `BADGE_CONTRACT_ADDRESS`, `PRIVATE_KEY`
+  - PRIVATE_KEY must include the `0x` prefix and be exactly 64 hex chars (no quotes)
 - New API routes (mounted at `/api`):
   - `GET /api/badges/status` — shows if blockchain is configured or using mock
   - `GET /api/badges` — list recently minted badges from the off-chain index

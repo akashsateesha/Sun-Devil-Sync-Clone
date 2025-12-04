@@ -93,6 +93,19 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // SDC coin transactions (mint or transfer) for off-chain history
+    db.run(`CREATE TABLE IF NOT EXISTS sdc_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        from_wallet TEXT,
+        to_wallet TEXT,
+        amount_wei TEXT,
+        amount_tokens TEXT,
+        tx_hash TEXT,
+        network TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Seed Groups
     db.get("SELECT count(*) as count FROM groups", (err, row) => {
         if (row.count === 0) {
