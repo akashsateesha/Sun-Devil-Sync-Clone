@@ -7,7 +7,9 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:amoy": "hardhat run scripts/deploy.js --network polygonAmoy",
-    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost"
+    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sdc:amoy": "hardhat run scripts/deploy-sdc.js --network polygonAmoy",
+    "deploy:sdc:localhost": "hardhat run scripts/deploy-sdc.js --network localhost"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

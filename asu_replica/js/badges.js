@@ -7,12 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
             loadBadgeStatus();
             setupBadgeLookup();
             setupBadgeMinting();
+            loadMyBadges();
             loadBadgeList();
         });
     } else {
         loadBadgeStatus();
         setupBadgeLookup();
         setupBadgeMinting();
+        loadMyBadges();
         loadBadgeList();
     }
 });
@@ -172,6 +174,7 @@ async function loadBadgeList() {
 function badgeListItem(badge) {
     const issued = badge.created_at ? new Date(badge.created_at).toLocaleString() : '';
     const tokenDisplay = badge.token_id ? `#${badge.token_id}` : 'Untracked';
+    const txUrl = explorerLink(badge.tx_hash, badge.network);
     return `
         <div class="card mb-2">
             <div class="card-header">
@@ -183,10 +186,42 @@ function badgeListItem(badge) {
                 <p><strong>Event:</strong> ${badge.event_name || 'N/A'} (ID: ${badge.event_id || 'N/A'})</p>
                 <p><strong>Achievement:</strong> ${badge.achievement_type || 'N/A'}</p>
                 <p><strong>Metadata URI:</strong> <a href="${badge.metadata_uri}" target="_blank" rel="noopener">${badge.metadata_uri}</a></p>
-                <p><strong>Tx Hash:</strong> ${badge.tx_hash || 'pending'}</p>
+                <p><strong>Tx Hash:</strong> ${txUrl ? `<a href="${txUrl}" target="_blank" rel="noopener">${badge.tx_hash}</a>` : (badge.tx_hash || 'pending')}</p>
                 <p class="text-secondary">Minted: ${issued}</p>
                 ${badge.token_id ? `<a class="btn btn-sm btn-primary" href="verify.html?tokenId=${badge.token_id}">Verify</a>` : ''}
             </div>
         </div>
     `;
+}
+
+async function loadMyBadges() {
+    const section = document.getElementById('my-badges-section');
+    const list = document.getElementById('my-badges-list');
+    const count = document.getElementById('my-badge-count');
+    if (!section || !list) return;
+
+    const user = window.currentUser;
+    if (!user) {
+        list.innerHTML = '<p class="text-secondary">Log in to see your badges.</p>';
+        return;
+    }
+
+    list.innerHTML = '<p class="text-secondary">Loading...</p>';
+    const badges = await api.get('/my-badges');
+    if (!badges || badges.length === 0) {
+        list.innerHTML = '<p class="text-secondary">No badges yet. Enroll in an event to mint an enrolled badge.</p>';
+        if (count) count.textContent = '0';
+        return;
+    }
+
+    if (count) count.textContent = `${badges.length}`;
+    list.innerHTML = badges.map(badgeListItem).join('');
+}
+
+function explorerLink(tx, network) {
+    if (!tx || !network) return null;
+    const net = network.toLowerCase();
+    if (net.includes('amoy')) return `https://amoy.polygonscan.com/tx/${tx}`;
+    if (net.includes('polygon')) return `https://polygonscan.com/tx/${tx}`;
+    return null;
 }

@@ -4,6 +4,7 @@ This folder contains the Node/Express development server and the client pages fo
 
 **Quick Start (macOS / zsh)**
 
+- **Node version:** `.nvmrc` targets Node 20. If you use `nvm`, run `nvm use`.
 - **Install dependencies:**
 
   ```bash
@@ -11,9 +12,13 @@ This folder contains the Node/Express development server and the client pages fo
   npm install
   ```
 
-- **Start the server:**
+- **Env file:** `cp .env.example .env` then set a strong `SESSION_SECRET`. Leave `MOCK_CHAIN=true` for mock mode.
+
+- **Start the server (nodemon):**
 
   ```bash
+  npm run dev   # restarts on file changes
+  # or:
   npm start
   # or explicitly:
   node server.js
@@ -24,14 +29,70 @@ This folder contains the Node/Express development server and the client pages fo
   - Default URL: `http://localhost:3000`
   - If you set a different port: `http://localhost:<PORT>`
 
-**Notes**
+**Tooling**
 
-- The server will create a `database.sqlite` file in the `asu_replica` folder on first run and seed `groups` and `events` from `data/*.json`.
-- Minted badges are also indexed off-chain in the `minted_badges` table for quick UI lists (on-chain source of truth is the SunDevilBadge contract).
-- Default test users:
+- Lint: `npm run lint` (auto-fix with `npm run lint:fix`)
+- Format: `npm run format` (check only: `npm run format:check`)
+
+**Environment and modes**
+
+- `.env` values (see `.env.example`):
+  - `SESSION_SECRET` (required for stable sessions)
+  - `PORT` (optional, defaults to 3000)
+  - `MOCK_CHAIN=true` for fully local/mock badge flows (no blockchain needed)
+  - For live chain calls set `MOCK_CHAIN=false` and provide `AMOY_RPC_URL`, `BADGE_CONTRACT_ADDRESS`, `PRIVATE_KEY`
+- SQLite database file `database.sqlite` is created on first run and seeded from `data/*.json`.
+- Test users:
   - Student — **username**: `student`  **password**: `password123`  (email `student@asu.edu`)
   - Admin — **username**: `admin`  **password**: `adminpass123`  (email `admin@asu.edu`)
-- API endpoints are mounted at `/api` (see `routes/auth.js` and `routes/api.js`).
+
+**Blockchain deployment options**
+
+- **Mock (recommended for UI/dev):** keep `MOCK_CHAIN=true`. Badge mint/verify uses the in-memory mock; no wallet needed.
+- **Local Hardhat network (for on-chain testing you control):**
+  ```bash
+  cd /Users/roystonf/Sun-Devil-Sync-Clone/asu_replica/blockchain
+  npm install
+  npx hardhat node                                   # start local chain (chainId 31337)
+  npx hardhat run scripts/deploy.js --network localhost
+  ```
+  - Copy the deployed contract address into `BADGE_CONTRACT_ADDRESS` in your root `.env`.
+  - Set `MOCK_CHAIN=false`, `AMOY_RPC_URL=http://127.0.0.1:8545`, and `PRIVATE_KEY` to one of the Hardhat accounts printed in the node output (import that account into MetaMask for testing).
+- **Polygon Amoy testnet:**
+  ```bash
+  cd /Users/roystonf/Sun-Devil-Sync-Clone/asu_replica/blockchain
+  npm install
+  npx hardhat run scripts/deploy.js --network polygonAmoy
+  ```
+  - Provide `AMOY_RPC_URL` and `PRIVATE_KEY` for a funded testnet wallet (with MATIC).
+  - Copy the deployed address into `BADGE_CONTRACT_ADDRESS` in `.env` and set `MOCK_CHAIN=false`.
+  - Import the same wallet into MetaMask; select the Polygon Amoy network (chainId 80002).
+
+**Sun Devil Coin (SDC)**
+
+- Contract: `blockchain/contracts/SDCToken.sol` (simple ERC20; mints 1,000,000 SDC to deployer).
+- Deploy to Amoy:
+  ```bash
+  cd /Users/roystonf/Sun-Devil-Sync-Clone/asu_replica/blockchain
+  npx hardhat compile
+  npx hardhat run scripts/deploy-sdc.js --network polygonAmoy
+  ```
+  Copy the address to `SDC_TOKEN_ADDRESS` in `.env` (decimals default to 18; set `SDC_DECIMALS` if you change it).
+- The app uses `PRIVATE_KEY` to send SDC for on-chain transfers; fund that wallet with SDC (and MATIC for gas).
+  If `SDC_TOKEN_ADDRESS` is empty, SDC flows run in mock mode.
+
+**API highlights**
+
+- API endpoints are mounted at `/api` (see `routes/auth.js`, `routes/api.js`, `routes/badges.js`).
+- Badge routes:
+  - `GET /api/badges/status` — shows if blockchain is configured or using mock
+  - `GET /api/badges` — list recently minted badges from the off-chain index
+  - `POST /api/badges/mint` — admin-only; body must include `studentWallet`, `eventId`, `eventName`, `eventDate`, `achievementType`, `metadataURI`
+  - `GET /api/badges/:tokenId` — fetch badge details and token URI for verification pages
+
+**Notes**
+
+- Minted badges are also indexed off-chain in the `minted_badges` table for quick UI lists (on-chain source of truth is the SunDevilBadge contract).
 - To change the port, set the `PORT` environment variable before start, e.g. `PORT=4000 npm start`.
 
 **Optional: Static-only preview**
@@ -45,29 +106,7 @@ python3 -m http.server 8000
 npx serve .
 ```
 
-**Optional: Smart contracts (Hardhat)**
-
-Contracts live in `blockchain/`. To compile or deploy locally:
-
-```bash
-cd /Users/roystonf/Sun-Devil-Sync-Clone/asu_replica/blockchain
-npm install
-npx hardhat compile
-npx hardhat node         # start a local node
-npx hardhat run scripts/deploy.js --network localhost
-```
-
-**Blockchain badge integration (Polygon Amoy)**
-
-- Copy `.env.example` to `.env` and fill in:
-  - `MOCK_CHAIN=true` to use the in-memory mock (no blockchain needed)
-  - For real testnet calls: `AMOY_RPC_URL`, `BADGE_CONTRACT_ADDRESS`, `PRIVATE_KEY`
-- New API routes (mounted at `/api`):
-  - `GET /api/badges/status` — shows if blockchain is configured or using mock
-  - `GET /api/badges` — list recently minted badges from the off-chain index
-  - `POST /api/badges/mint` — admin-only; body must include `studentWallet`, `eventId`, `eventName`, `eventDate`, `achievementType`, `metadataURI`
-  - `GET /api/badges/:tokenId` — fetch badge details and token URI for verification pages
-- Quick mint test (mock mode is fine):
+**Quick mint test (mock mode is fine)**
 
   ```bash
   # login as admin first (use admin/adminpass123)
@@ -97,8 +136,16 @@ npx hardhat run scripts/deploy.js --network localhost
    - Open `verify.html` and enter the token ID, or use `verify.html?tokenId=<id>`.
 4) Browse badges:
    - Open `badges.html` to see the off-chain list of minted badges with quick links to verify.
-5) Switch to real Amoy:
-   - In `.env`, set `MOCK_CHAIN=false`, provide `AMOY_RPC_URL`, `BADGE_CONTRACT_ADDRESS`, and `PRIVATE_KEY` for the issuer wallet (must have MINTER_ROLE).
+5) Switch to a real chain (local Hardhat or Amoy):
+   - Set `MOCK_CHAIN=false` and configure `AMOY_RPC_URL`, `BADGE_CONTRACT_ADDRESS`, and `PRIVATE_KEY` as described above.
+
+**Testing checklist**
+
+- Start the app: `npm start` then open `http://localhost:3000`.
+- Auth: use the login modal on `index.html` with `student/password123` (student) and `admin/adminpass123` (admin); ensure the UI updates and `/api/me` returns the logged-in user.
+- Groups/Events: on `groups.html` click "Join"; on `events.html` RSVP/un-RSVP and verify spots left updates.
+- Badges (mock by default): log in as admin, open `admin.html`, mint a badge, then confirm it appears on `badges.html` and is viewable in `verify.html?tokenId=<id>`.
+- API spot checks (new terminal): `curl -s http://localhost:3000/api/badges/status` and `curl -s http://localhost:3000/api/events | head`.
 
 **Troubleshooting**
 

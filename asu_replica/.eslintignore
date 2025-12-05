@@ -1,0 +1,9 @@
+node_modules
+blockchain/node_modules
+blockchain/artifacts
+blockchain/cache
+blockchain/abi
+database.sqlite
+server-*.log
+.npm
+.DS_Store
